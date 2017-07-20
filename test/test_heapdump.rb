@@ -1,8 +1,8 @@
 require 'minitest/autorun'
-require 'heapdump'
+require 'heapdump.so'
 
-class TestHeapdump < MiniTest::Unit::TestCase
+class TestHeapdump < Minitest::Test
   def test_sanity
-    flunk "write tests or I will kneecap you"
+    Heap.new.task_for_pid(ENV["XPID"].to_i)
   end
 end
