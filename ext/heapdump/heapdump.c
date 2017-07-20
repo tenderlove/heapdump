@@ -80,7 +80,6 @@ rb_task_for_pid(VALUE klass, VALUE pid)
 {
     mach_port_t * task;
 
-
     task = xmalloc(sizeof(mach_port_t));
 
     ASSERT_SUCCESS(task_for_pid(mach_task_self(), NUM2INT(pid), task));
