@@ -55,13 +55,13 @@ rb_thread_state_at(VALUE self, VALUE idx)
     mach_port_t * task;
     thread_act_port_array_t thread_list;
     mach_msg_type_number_t thread_count;
-    x86_thread_state64_t * state;
-    mach_msg_type_number_t state_count = x86_DEBUG_STATE_COUNT;
+    x86_thread_state_t * state;
+    mach_msg_type_number_t state_count = x86_THREAD_STATE_COUNT;
     VALUE state_struct;
 
     TypedData_Get_Struct(self, mach_port_t, &HeapTask_type, task);
 
-    state = xcalloc(1, sizeof(x86_thread_state64_t));
+    state = xcalloc(1, sizeof(x86_thread_state_t));
 
     ASSERT_SUCCESS(task_threads(*task, &thread_list, &thread_count));
 
@@ -69,8 +69,7 @@ rb_thread_state_at(VALUE self, VALUE idx)
 	rb_raise(rb_eRuntimeError, "index out of bounds");
     }
 
-    ASSERT_SUCCESS(thread_get_state(thread_list[NUM2INT(idx)], x86_DEBUG_STATE, (thread_state_t)state, &state_count));
-
+    ASSERT_SUCCESS(thread_get_state(thread_list[NUM2INT(idx)], x86_THREAD_STATE, state, &state_count));
 
     return TypedData_Wrap_Struct(cHeapThreadState64, &ThreadState64_type, state);
 }
@@ -91,9 +90,9 @@ rb_task_for_pid(VALUE klass, VALUE pid)
 #define STATE_64(_member) \
 static VALUE rb_thread_state_##_member(VALUE self) \
 { \
-    x86_thread_state64_t * state;\
-    TypedData_Get_Struct(self, x86_thread_state64_t, &ThreadState64_type, state); \
-    return LONG2NUM(state->__##_member); \
+    x86_thread_state_t * state;\
+    TypedData_Get_Struct(self, x86_thread_state_t, &ThreadState64_type, state); \
+    return LONG2NUM(state->uts.ts64.__##_member); \
 }
 
 STATE_64(rax);
@@ -130,6 +129,7 @@ void Init_heapdump()
     rb_define_singleton_method(cTask, "for_pid", rb_task_for_pid, 1);
     rb_define_method(cTask, "thread_count", rb_thread_count_for_task, 0);
     rb_define_method(cTask, "thread_state_at", rb_thread_state_at, 1);
+
 #define STATE_64(_member) \
     rb_define_method(cHeapThreadState64, #_member, rb_thread_state_##_member, 0);
 
